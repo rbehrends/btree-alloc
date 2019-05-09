@@ -15,52 +15,59 @@ performance of memory management techniques. Other use cases may result in
 different performance profiles. For example, data that is not so
 pointer-heavy will put less of a burden on GC marking.
 
-The code exclusively allocates two word objects, which any smart allocator
-will serve from a pool in essentially constant time. Calling external
-libraries and synchronization can therefore make up a significant part of
-the allocation overhead.
+The code exclusively allocates small objects consisting of two machine
+words, which any smart allocator implementation will serve from a pool in
+essentially constant time. Calling functions in external libraries and
+synchronization can therefore make up a significant part of the allocation
+overhead.
 
 The benchmark is specifically designed not to make life easy for garbage
-collectors by keeping a large heap alive.
+collectors by keeping a large part of the heap alive.
 
-We're measuring throughput only, not pause times.
+We're measuring throughput only, not pause times, though there is some
+instrumentation in the C code to measure pause times.
 
 A few notes:
 
 * OCaml and Java perform so well, because they inline allocations and serve
-  them via a bump allocator from the nursery.
-* Garbage collectors have an advantage over explicit allocations in that
+  them via a bump allocator from the nursery. In addition, OCaml does not
+  have to worry about synchronization.
+* Garbage collectors have an advantage over explicit allocators in that
   they can batch deallocations during the sweep phase, whereas explicit
-  `free()` has a per-object overhead just to call the function.
+  `free()` has a per-object overhead just to call the function. This
+  reduces the amortized overhead for freeing memory.
 * Garbage collectors can also parallelize most of their work, trading CPU
-  load for improved wall clock time.
+  load for improved wall clock time. Not all do that, but some do, making
+  it important to not just compare wall clock time if total load matters.
 * Go is somewhat unfairly disadvantaged; it is designed to turn off its
-  write barrier when no allocation is happening, but the unusual allocation
+  write barrier when no collection is happening, but the unusual allocation
   load never allows it to do that.
 * Dlmalloc without synchronization benefits greatly from not having to wrap
   allocations with mutex operations. A similar benefit can be achieved by
   having thread-local allocators (e.g. what various GCs do).
 * This specific program can obviously be made even faster by using a
   specialized allocator; however, the point is not to optimize the code, but
-  to see the cost of regular allocations.
+  to see the cost of regular allocation mechanisms.
 * Somewhat surprisingly, the largest pause times are (without revisions to
   the code) incurred by explicit deallocation strategies, not by mark and
   sweep collectors. This is because deallocating a large tree is more
   expensive than a full GC sweep phase due to a larger per-object overhead.
-  The code can be rewritten to break up such large deallocations.
+  The code can be rewritten to break up such large deallocations, but may
+  not look as natural anymore.
 
 Benchmarks were run on a Mac, which accounts in large part for the poor
 performance of system malloc() and free(). The processor was a 2.6 GHz Intel
 Core i7 with six cores.
 
 Below are the results of sample runs, for `make benchmark DEPTH=21` and
-`make benchmark`. See the `Makefile` for further configuration options, such
-as the choice of compilers and compiler flags.
+`make benchmark DEPTH=20`. See the `Makefile` for further configuration
+options, such as the choice of compilers and compiler flags.
 
 Note that those are a single run each and results can vary somewhat. Again,
 the goal is not to say something about typical performance of allocators,
 but to show that naive assumptions about the performance of various methods
-of memory management may not actually always be true.
+of memory management may not actually always be true. Therefore, getting
+precise measurements was not a priority.
 
 ## Results for DEPTH=21
 
