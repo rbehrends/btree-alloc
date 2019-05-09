@@ -23,11 +23,14 @@ PROGRAMS=btree-jemalloc \
 	 btree.class \
 	 btree-go \
 	 btree-sysmalloc \
-	 btree-tiny-gc
+	 btree-tiny-gc \
+	 btree-hs
 DEPTH=21
 
 all: $(PROGRAMS)
 benchmark: $(PROGRAMS)
+	# haskell
+	$(BENCH) ./btree-hs $(DEPTH) > /dev/null
 	# jemalloc explicit malloc()/free()
 	$(BENCH) ./btree-jemalloc $(DEPTH) >/dev/null
 	# dlmalloc explicit malloc()/free() (not threadsafe)
@@ -89,6 +92,8 @@ btree-d: btree.d
 	$(DC) $(DFLAGS) -of=$@ $<
 btree-go: btree.go
 	$(GO) build -o $@ $<
+btree-hs: btree-hs.lhs
+	stack ghc -- --make -O3 $<
 btree-ml: btree.ml
 	$(OCAMLOPT) $(OCAMLFLAGS) -o $@ $<
 btree.class: btree.java
