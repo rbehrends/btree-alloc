@@ -20,6 +20,7 @@ PROGRAMS=btree-jemalloc \
 	 btree-ml \
 	 btree-nim btree-nim-boehm btree-nim-ms \
 	 btree-d \
+	 btree-d-struct \
 	 btree.class \
 	 btree-go \
 	 btree-sysmalloc \
@@ -50,8 +51,10 @@ benchmark: $(PROGRAMS)
 	$(BENCH) ./btree-nim-ms $(DEPTH) >/dev/null
 	# Nim with Boehm GC
 	GC_MARKERS=4 $(BENCH) ./btree-nim-boehm $(DEPTH) >/dev/null
-	# D garbage collector
+	# D garbage collector (classes)
 	$(BENCH) ./btree-d $(DEPTH) >/dev/null
+	# D garbage collector (structs)
+	$(BENCH) ./btree-d-struct $(DEPTH) >/dev/null
 	# Go garbage collector
 	$(BENCH) ./btree-go $(DEPTH) >/dev/null
 	# Dart garbage collector
@@ -87,6 +90,8 @@ btree-nim-ms: btree.nim
 	$(NIMC) $(NIMFLAGS) --gc=markandsweep -o=$@ $<
 btree-d: btree.d
 	$(DC) $(DFLAGS) -of=$@ $<
+btree-d-struct: btree.d
+	$(DC) $(DFLAGS) -d-version=UseStructs -of=$@ $<
 btree-go: btree.go
 	$(GO) build -o $@ $<
 btree-ml: btree.ml
