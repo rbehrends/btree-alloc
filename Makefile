@@ -8,6 +8,7 @@ OCAMLFLAGS=-O3
 NIMC=nim cc
 JAVAC=javac
 JAVA=java
+JAVAFLAGS=-XX:ParallelGCThreads=4 -XX:ConcGCThreads=3
 CFLAGS=-O3
 DFLAGS=-O3 -release
 NIMFLAGS=-d:release --hints=off --warnings=off --verbosity=0 --nimcache=nimcache
@@ -45,8 +46,8 @@ benchmark: $(PROGRAMS)
 	GC_MARKERS=1 $(BENCH) ./btree-gc $(DEPTH) >/dev/null
 	# Boehm GC with explicit deallocation
 	GC_MARKERS=1 $(BENCH) ./btree-gc-free $(DEPTH) >/dev/null
-	# Boehm GC with incremental collection (single-threaded)
-	$(BENCH) ./btree-gc-inc $(DEPTH) >/dev/null
+	# Boehm GC with incremental collection
+	GC_MARKERS=4 $(BENCH) ./btree-gc-inc $(DEPTH) >/dev/null
 	# OCaml
 	$(BENCH) ./btree-ml $(DEPTH) >/dev/null
 	# Nim reference counting GC
@@ -60,11 +61,11 @@ benchmark: $(PROGRAMS)
 	# D garbage collector (structs)
 	$(BENCH) ./btree-d-struct $(DEPTH) >/dev/null
 	# Go garbage collector
-	$(BENCH) ./btree-go $(DEPTH) >/dev/null
+	GOMAXPROCS=4 $(BENCH) ./btree-go $(DEPTH) >/dev/null
 	# Dart garbage collector
 	$(BENCH) $(DARTRUN) $(DARTFLAGS) btree-dart.aot $(DEPTH) >/dev/null
 	# Java default garbage collector
-	$(BENCH) $(JAVA) btree $(DEPTH) >/dev/null
+	$(BENCH) $(JAVA) $(JAVAFLAGS) btree $(DEPTH) >/dev/null
 	# System malloc()/free()
 	$(BENCH) ./btree-sysmalloc $(DEPTH) >/dev/null
 	# Tiny GC (w/ dlmalloc as base allocator)
