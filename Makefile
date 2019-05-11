@@ -2,6 +2,8 @@ CC=gcc
 DC=ldc2
 GO=go
 OCAMLOPT=ocamlopt
+DARTCOMP=dart2aot
+DARTRUN=dartaotruntime
 OCAMLFLAGS=-O3
 NIMC=nim cc
 JAVAC=javac
@@ -9,6 +11,7 @@ JAVA=java
 CFLAGS=-O3
 DFLAGS=-O3 -release
 NIMFLAGS=-d:release --hints=off --warnings=off --verbosity=0 --nimcache=nimcache
+DARTFLAGS=--marker-tasks=1
 LIBGC=-lgc
 WITHDLMALLOC=-w -DUSE_DL_PREFIX dlmalloc/dlmalloc.c
 WITHTINYGC=-DGC_FASTCALL= -DGC_CLIBDECL= -DGC_STACKBOTTOMVAR=GC_stackend -DGC_CORE_MALLOC=dlmalloc -DGC_CORE_FREE=dlfree tinygc/tinygc.c
@@ -22,6 +25,7 @@ PROGRAMS=btree-jemalloc \
 	 btree-d \
 	 btree-d-struct \
 	 btree.class \
+	 btree-dart.aot \
 	 btree-go \
 	 btree-sysmalloc \
 	 btree-tiny-gc
@@ -58,7 +62,7 @@ benchmark: $(PROGRAMS)
 	# Go garbage collector
 	$(BENCH) ./btree-go $(DEPTH) >/dev/null
 	# Dart garbage collector
-	$(BENCH) dart btree.dart $(DEPTH) >/dev/null
+	$(BENCH) $(DARTRUN) $(DARTFLAGS) btree-dart.aot $(DEPTH) >/dev/null
 	# Java default garbage collector
 	$(BENCH) $(JAVA) btree $(DEPTH) >/dev/null
 	# System malloc()/free()
@@ -98,9 +102,12 @@ btree-ml: btree.ml
 	$(OCAMLOPT) $(OCAMLFLAGS) -o $@ $<
 btree.class: btree.java
 	$(JAVAC) $<
+btree-dart.aot: btree.dart
+	$(DARTCOMP) $< $@
 
 version:
 	@printf "jemalloc "; jemalloc-config --version | sed -e 's/-.*//'
+	@printf '#include <gc/gc.h>\nGC_VERSION_MAJOR GC_VERSION_MINOR GC_VERSION_MICRO'| gcc -E - | tail -1 | awk '{print "Boehm GC "$$1"."$$2"."$$3 }'
 	@$(CC) -v 2>&1 | egrep ' version '
 	@$(DC) --version | head -1
 	@$(NIMC)  --version | head -1
@@ -110,5 +117,5 @@ version:
 	@javac -version
 
 clean:
-	rm -rf $(PROGRAMS) btree*.o btree.cm? btree*.class nimcache
+	rm -rf $(PROGRAMS) btree*.o btree.cm? btree*.class btree*.dill nimcache
 .PHONY: all benchmark clean
