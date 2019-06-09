@@ -8,7 +8,7 @@
 #ifdef USE_INC_GC
 void no_warn(char *msg, GC_word arg) { }
 #define INIT GC_set_warn_proc(no_warn); GC_set_handle_fork(0); \
-  GC_enable_incremental(); GC_INIT();
+  GC_enable_incremental(); GC_INIT(); GC_set_full_freq(1000000000);
 #else
 #define INIT GC_INIT();
 #endif

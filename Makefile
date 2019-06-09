@@ -11,7 +11,7 @@ JAVA=java
 JAVAFLAGS=-XX:ParallelGCThreads=4 -XX:ConcGCThreads=3
 CFLAGS=-O3
 DFLAGS=-O3 -release
-NIMFLAGS=-d:release --hints=off --warnings=off --verbosity=0 --nimcache=nimcache
+NIMFLAGS=-d:release -d:danger --hints=off --warnings=off --verbosity=0 --nimcache=$@.build
 DARTFLAGS=--marker-tasks=1
 LIBGC=-lgc
 WITHDLMALLOC=-w -DUSE_DL_PREFIX dlmalloc/dlmalloc.c
@@ -118,5 +118,6 @@ version:
 	@javac -version
 
 clean:
-	rm -rf $(PROGRAMS) btree*.o btree.cm? btree*.class btree*.dill nimcache
+	rm -f $(PROGRAMS)
+	rm -rf btree*.o btree.cm? btree*.class btree*.dill btree*.build
 .PHONY: all benchmark clean
