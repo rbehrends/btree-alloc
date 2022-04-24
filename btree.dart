@@ -1,11 +1,11 @@
 class Node {
-  final Node left, right;
+  final Node? left, right;
   Node(this.left, this.right);
   int checksum() {
     if (left == null)
       return 1;
     else
-      return 1 + left.checksum() + right.checksum();
+      return 1 + left!.checksum() + right!.checksum();
   }
 }
 
@@ -22,7 +22,7 @@ void main(List<String> args) {
   if (args.length > 0) n = int.parse(args[0]);
   int max_depth = (min_depth + 2 > n) ? min_depth + 2 : n;
   int stretch_depth = max_depth + 1;
-  var stretch_tree = make_tree(stretch_depth);
+  Node? stretch_tree = make_tree(stretch_depth);
   int check = stretch_tree.checksum();
 
   print("stretch tree of depth ${stretch_depth}\t check: ${check}");

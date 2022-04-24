@@ -23,6 +23,11 @@ void no_warn(char *msg, GC_word arg) { }
 #define INIT ((void) 0)
 #define MALLOC(n) (malloc(n))
 #define FREE(p) (free(p))
+#elif defined(USE_MIMALLOC)
+#include <mimalloc.h>
+#define INIT ((void) 0)
+#define MALLOC(n) (mi_malloc(n))
+#define FREE(p) (mi_free(p))
 #elif defined(USE_DLMALLOC)
 extern void *dlmalloc(size_t);
 extern void dlfree(void *);
