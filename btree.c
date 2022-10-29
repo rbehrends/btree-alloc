@@ -3,14 +3,16 @@
 #include <stdint.h>
 
 #ifdef USE_BOEHM_GC
+#define GC_THREADS 1
 #include <gc/gc.h>
 #include <sys/time.h>
 #ifdef USE_INC_GC
 void no_warn(char *msg, GC_word arg) { }
 #define INIT GC_set_warn_proc(no_warn); GC_set_handle_fork(0); \
-  GC_enable_incremental(); GC_INIT(); GC_set_full_freq(1000000000);
+  GC_enable_incremental(); GC_INIT(); GC_set_full_freq(1000000000); \
+  GC_start_mark_threads();
 #else
-#define INIT GC_INIT();
+#define INIT GC_INIT(); GC_start_mark_threads();
 #endif
 #define MALLOC(n) (GC_malloc(n))
 #ifdef EXPLICIT_FREE

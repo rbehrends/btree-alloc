@@ -34,7 +34,7 @@ class btree {
     System.out.println(
       "stretch tree of depth "+stretch_depth+"\t check: " + check);
     
-    Node long_lived_tree = make_tree(max_depth + 1);
+    Node long_lived_tree = make_tree(max_depth);
     
     for (int depth=min_depth; depth<=max_depth; depth+=2){
       int iter = 1 << (max_depth - depth + min_depth);

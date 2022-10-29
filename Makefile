@@ -1,4 +1,5 @@
 CC=gcc
+CXX=g++
 DC=ldc2
 GO=go
 OCAMLOPT=ocamlopt
@@ -16,7 +17,7 @@ LIBGC=-lgc
 WITHDLMALLOC=-w -DUSE_DL_PREFIX dlmalloc/dlmalloc.c
 WITHTINYGC=-DGC_FASTCALL= -DGC_CLIBDECL= -DGC_STACKBOTTOMVAR=GC_stackend -DGC_CORE_MALLOC=dlmalloc -DGC_CORE_FREE=dlfree tinygc/tinygc.c
 
-BENCH=/usr/bin/time
+BENCH=tools/bench.sh
 PROGRAMS=btree-jemalloc \
 	 btree-mimalloc \
 	 btree-dlmalloc btree-dlmalloc-lock \
@@ -36,55 +37,55 @@ DEPTH=21
 all: $(PROGRAMS)
 benchmark: $(PROGRAMS)
 	# jemalloc explicit malloc()/free()
-	$(BENCH) ./btree-jemalloc $(DEPTH) >/dev/null
+	$(BENCH) ./btree-jemalloc $(DEPTH)
 	# mimalloc explicit malloc()/free()
-	$(BENCH) ./btree-mimalloc $(DEPTH) >/dev/null
+	$(BENCH) ./btree-mimalloc $(DEPTH)
 	# dlmalloc explicit malloc()/free() (not threadsafe)
-	$(BENCH) ./btree-dlmalloc $(DEPTH) >/dev/null
+	$(BENCH) ./btree-dlmalloc $(DEPTH)
 	# dlmalloc explicit malloc()/free() (threadsafe)
-	$(BENCH) ./btree-dlmalloc-lock $(DEPTH) >/dev/null
+	$(BENCH) ./btree-dlmalloc-lock $(DEPTH)
 	# C++ shared pointers (with mimalloc as base allocator)
-	$(BENCH) ./btree-shared-ptr $(DEPTH) >/dev/null
+	$(BENCH) ./btree-shared-ptr $(DEPTH)
 	# C++ shared pointers + const ref (with mimalloc as base allocator)
-	$(BENCH) ./btree-shared-ptr-const-ref $(DEPTH) >/dev/null
+	$(BENCH) ./btree-shared-ptr-const-ref $(DEPTH)
 	# Boehm GC with four parallel marker threads
-	GC_MARKERS=4 $(BENCH) ./btree-gc $(DEPTH) >/dev/null
+	GC_MARKERS=4 $(BENCH) ./btree-gc $(DEPTH)
 	# Boehm GC with single-threaded marking
-	GC_MARKERS=1 $(BENCH) ./btree-gc $(DEPTH) >/dev/null
+	GC_MARKERS=1 $(BENCH) ./btree-gc $(DEPTH)
 	# Boehm GC with four parallel markers and minimal space overhead
-	GC_MARKERS=4 GC_FREE_SPACE_DIVISOR=10 $(BENCH) ./btree-gc $(DEPTH) >/dev/null
+	GC_MARKERS=4 GC_FREE_SPACE_DIVISOR=10 $(BENCH) ./btree-gc $(DEPTH)
 	# Boehm GC with single-threaded marking and minimal space overhead
-	GC_MARKERS=1 GC_FREE_SPACE_DIVISOR=10 $(BENCH) ./btree-gc $(DEPTH) >/dev/null
+	GC_MARKERS=1 GC_FREE_SPACE_DIVISOR=10 $(BENCH) ./btree-gc $(DEPTH)
 	# Boehm GC with explicit deallocation
-	$(BENCH) ./btree-gc-free $(DEPTH) >/dev/null
+	$(BENCH) ./btree-gc-free $(DEPTH)
 	# OCaml
-	$(BENCH) ./btree-ml $(DEPTH) >/dev/null
+	$(BENCH) ./btree-ml $(DEPTH)
 	# Nim reference counting GC
-	$(BENCH) ./btree-nim $(DEPTH) >/dev/null
+	$(BENCH) ./btree-nim $(DEPTH)
 	# Nim mark and sweep GC
-	$(BENCH) ./btree-nim-ms $(DEPTH) >/dev/null
+	$(BENCH) ./btree-nim-ms $(DEPTH)
 	# Nim with ARC and cycle collection enabled
-	$(BENCH) ./btree-nim-arc $(DEPTH) >/dev/null
+	$(BENCH) ./btree-nim-arc $(DEPTH)
 	# Nim with Boehm GC
-	GC_MARKERS=4 $(BENCH) ./btree-nim-boehm $(DEPTH) >/dev/null
+	GC_MARKERS=1 $(BENCH) ./btree-nim-boehm $(DEPTH)
 	# D garbage collector (classes)
-	$(BENCH) ./btree-d $(DEPTH) >/dev/null
+	$(BENCH) ./btree-d $(DEPTH)
 	# D garbage collector (structs)
-	$(BENCH) ./btree-d-struct $(DEPTH) >/dev/null
+	$(BENCH) ./btree-d-struct $(DEPTH)
 	# Go garbage collector
-	GOMAXPROCS=4 $(BENCH) ./btree-go $(DEPTH) >/dev/null
+	GOMAXPROCS=4 $(BENCH) ./btree-go $(DEPTH)
 	# Dart garbage collector
-	$(BENCH) ./btree-dart $(DEPTH) >/dev/null
+	$(BENCH) ./btree-dart $(DEPTH)
 	# Java G1GC garbage collector
-	$(BENCH) $(JAVA) -XX:+UseG1GC $(JAVAFLAGS) btree $(DEPTH) >/dev/null
+	$(BENCH) $(JAVA) -XX:+UseG1GC $(JAVAFLAGS) btree $(DEPTH)
 	# Java ZGC garbage collector
-	$(BENCH) $(JAVA) -XX:+UseZGC $(JAVAFLAGS) btree $(DEPTH) >/dev/null
+	$(BENCH) $(JAVA) -XX:+UseZGC $(JAVAFLAGS) btree $(DEPTH)
 	# Java Shenandoah garbage collector
-	$(BENCH) $(JAVA) -XX:+UseShenandoahGC $(JAVAFLAGS) btree $(DEPTH) >/dev/null
+	$(BENCH) $(JAVA) -XX:+UseShenandoahGC $(JAVAFLAGS) btree $(DEPTH)
 	# System malloc()/free()
-	$(BENCH) ./btree-sysmalloc $(DEPTH) >/dev/null
+	$(BENCH) ./btree-sysmalloc $(DEPTH)
 	# Tiny GC (with dlmalloc as base allocator)
-	$(BENCH) ./btree-tiny-gc $(DEPTH) >/dev/null
+	$(BENCH) ./btree-tiny-gc $(DEPTH)
 
 btree-jemalloc: btree.c
 	$(CC) $(CFLAGS) -DUSE_JEMALLOC -o $@ $< -ljemalloc -lm
@@ -147,3 +148,4 @@ clean:
 	rm -f $(PROGRAMS)
 	rm -rf btree*.o btree.cm? btree*.class btree*.dill btree*.build
 .PHONY: all benchmark clean version
+.FORCE:

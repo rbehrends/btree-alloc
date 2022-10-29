@@ -28,7 +28,7 @@ void main(List<String> args) {
   print("stretch tree of depth ${stretch_depth}\t check: ${check}");
   stretch_tree = null;
 
-  var long_lived_tree = make_tree(max_depth + 1);
+  var long_lived_tree = make_tree(max_depth);
 
   for (int depth = min_depth; depth <= max_depth; depth += 2) {
     int iter = 1 << (max_depth - depth + min_depth);
