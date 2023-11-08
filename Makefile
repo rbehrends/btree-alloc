@@ -31,11 +31,14 @@ PROGRAMS=btree-jemalloc \
 	 btree-dart \
 	 btree-go \
 	 btree-sysmalloc \
-	 btree-tiny-gc
+	 btree-tiny-gc \
+	 btree-hs
 DEPTH=21
 
 all: $(PROGRAMS)
 benchmark: $(PROGRAMS)
+	# haskell
+	$(BENCH) ./btree-hs $(DEPTH) > /dev/null
 	# jemalloc explicit malloc()/free()
 	$(BENCH) ./btree-jemalloc $(DEPTH)
 	# mimalloc explicit malloc()/free()
@@ -123,6 +126,8 @@ btree-d-struct: btree.d
 	$(DC) $(DFLAGS) -d-version=UseStructs -of=$@ $<
 btree-go: btree.go
 	$(GO) build -o $@ $<
+btree-hs: btree-hs.lhs
+	stack ghc -- --make -O3 $<
 btree-ml: btree.ml
 	$(OCAMLOPT) $(OCAMLFLAGS) -o $@ $<
 btree.class: btree.java
